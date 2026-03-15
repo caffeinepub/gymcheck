@@ -27,9 +27,11 @@ import {
   CalendarCheck,
   Loader2,
   LogOut,
+  MessageCircle,
   Plus,
   Printer,
   QrCode,
+  Settings2,
   ShieldCheck,
   Users,
 } from "lucide-react";
@@ -148,6 +150,62 @@ function AccessDeniedScreen({
         </Button>
       </div>
     </div>
+  );
+}
+
+function SettingsTab() {
+  const [number, setNumber] = useState(
+    () => localStorage.getItem("gymcheck_whatsapp") ?? "",
+  );
+  const [saved, setSaved] = useState(false);
+
+  const handleSave = (e: React.FormEvent) => {
+    e.preventDefault();
+    localStorage.setItem("gymcheck_whatsapp", number.trim());
+    setSaved(true);
+    toast.success("WhatsApp number saved!");
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  return (
+    <Card className="bg-card border-border">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base font-display font-semibold flex items-center gap-2">
+          <MessageCircle className="w-4 h-4 text-[#25D366]" />
+          WhatsApp Check-In
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSave} className="space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="wa-number" className="text-sm">
+              WhatsApp Number
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              Enter the full number with country code, e.g. 60123456789 (no + or
+              spaces).
+            </p>
+            <Input
+              id="wa-number"
+              data-ocid="admin.settings.whatsapp.input"
+              type="tel"
+              value={number}
+              onChange={(e) => setNumber(e.target.value)}
+              placeholder="e.g. 60123456789"
+              className="bg-background border-border"
+            />
+          </div>
+          <Button
+            data-ocid="admin.settings.whatsapp.save_button"
+            type="submit"
+            className="w-full bg-[#25D366] hover:bg-[#1ebe5d] text-white font-bold h-11"
+            disabled={!number.trim()}
+          >
+            {saved ? "Saved!" : "Save Number"}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -308,7 +366,7 @@ export default function AdminPage({ onNavigateBack }: Props) {
           transition={{ delay: 0.1 }}
         >
           <Tabs defaultValue="today">
-            <TabsList className="w-full bg-card border border-border mb-4 grid grid-cols-4">
+            <TabsList className="w-full bg-card border border-border mb-4 grid grid-cols-5">
               <TabsTrigger
                 value="today"
                 data-ocid="admin.today_tab.tab"
@@ -336,6 +394,14 @@ export default function AdminPage({ onNavigateBack }: Props) {
                 className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs"
               >
                 History
+              </TabsTrigger>
+              <TabsTrigger
+                value="settings"
+                data-ocid="admin.settings_tab.tab"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs"
+              >
+                <Settings2 className="w-3.5 h-3.5 mr-1" />
+                Settings
               </TabsTrigger>
             </TabsList>
 
@@ -468,7 +534,6 @@ export default function AdminPage({ onNavigateBack }: Props) {
                                     </DialogTitle>
                                   </DialogHeader>
                                   <div className="flex flex-col items-center gap-4 py-2">
-                                    {/* QR code image with white background for clean scanning */}
                                     <div className="rounded-xl overflow-hidden border border-border bg-white p-3 shadow-sm">
                                       <img
                                         src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(member.qrToken)}`}
@@ -478,7 +543,6 @@ export default function AdminPage({ onNavigateBack }: Props) {
                                         className="block"
                                       />
                                     </div>
-                                    {/* Full token in monospace, no truncation */}
                                     <div className="w-full rounded-lg bg-background border border-border px-3 py-2">
                                       <p className="text-[10px] text-muted-foreground mb-1 uppercase tracking-wide">
                                         Token
@@ -487,7 +551,6 @@ export default function AdminPage({ onNavigateBack }: Props) {
                                         {member.qrToken}
                                       </code>
                                     </div>
-                                    {/* Print / Save hint */}
                                     <p className="text-xs text-muted-foreground flex items-center gap-1.5">
                                       <Printer className="w-3 h-3" />
                                       Right-click the image to save, or use
@@ -631,6 +694,10 @@ export default function AdminPage({ onNavigateBack }: Props) {
                   )}
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="settings">
+              <SettingsTab />
             </TabsContent>
           </Tabs>
         </motion.div>

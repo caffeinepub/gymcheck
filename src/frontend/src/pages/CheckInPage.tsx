@@ -13,23 +13,20 @@ import {
   Camera,
   CheckCircle2,
   Loader2,
-  QrCode,
-  RotateCcw,
+  MessageCircle,
   ScanFace,
   Settings,
   XCircle,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { useCamera } from "../camera/useCamera";
 import {
   CheckInResult,
   useCheckInByFace,
-  useCheckInByQR,
   useGetAllMembers,
 } from "../hooks/useQueries";
-import { useQRScanner } from "../qr-code/useQRScanner";
 
 interface Props {
   onNavigateAdmin: () => void;
@@ -54,186 +51,43 @@ function getErrorMessage(result: CheckInResult): string {
   }
 }
 
-function QRTab({
-  onResult,
-}: {
-  onResult: (result: CheckInState) => void;
-}) {
-  const checkIn = useCheckInByQR();
-  const { data: members } = useGetAllMembers();
-  const processedRef = useRef<string | null>(null);
+function WhatsAppTab() {
+  const whatsappNumber = localStorage.getItem("gymcheck_whatsapp") ?? "";
 
-  const {
-    isScanning,
-    isActive,
-    error,
-    isLoading,
-    canStartScanning,
-    startScanning,
-    stopScanning,
-    switchCamera,
-    qrResults,
-    clearResults,
-    videoRef,
-    canvasRef,
-    isSupported,
-  } = useQRScanner({
-    facingMode: "environment",
-    scanInterval: 150,
-    maxResults: 3,
-  });
-
-  const onResultRef = useRef(onResult);
-  onResultRef.current = onResult;
-  const membersRef = useRef(members);
-  membersRef.current = members;
-  const checkInRef = useRef(checkIn.mutateAsync);
-  checkInRef.current = checkIn.mutateAsync;
-  const stopScanningRef = useRef(stopScanning);
-  stopScanningRef.current = stopScanning;
-
-  useEffect(() => {
-    if (qrResults.length === 0) return;
-    const latest = qrResults[0];
-    if (processedRef.current === latest.data) return;
-    processedRef.current = latest.data;
-
-    const doCheckIn = async () => {
-      onResultRef.current({ kind: "loading" });
-      stopScanningRef.current();
-      try {
-        const result = await checkInRef.current(latest.data);
-        if (result === CheckInResult.success) {
-          const member = membersRef.current?.find(
-            (m) => m.qrToken === latest.data,
-          );
-          const now = new Date();
-          onResultRef.current({
-            kind: "success",
-            memberName: member?.name ?? "Member",
-            method: "QR Code",
-            time: now.toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            }),
-          });
-        } else {
-          onResultRef.current({
-            kind: "error",
-            message: getErrorMessage(result),
-          });
-        }
-      } catch {
-        onResultRef.current({
-          kind: "error",
-          message: "Check-in failed. Please try again.",
-        });
-      }
-    };
-    doCheckIn();
-  }, [qrResults]);
+  const handleOpen = () => {
+    if (!whatsappNumber) {
+      toast.error("WhatsApp number not configured. Please contact admin.");
+      return;
+    }
+    const clean = whatsappNumber.replace(/\D/g, "");
+    const text = encodeURIComponent("Hi! I'd like to check in at the gym.");
+    window.open(`https://wa.me/${clean}?text=${text}`, "_blank");
+  };
 
   return (
-    <div className="flex flex-col items-center gap-4">
-      <div
-        data-ocid="checkin.qr_scanner.canvas_target"
-        className="relative w-full max-w-sm rounded-2xl overflow-hidden bg-black"
-        style={{ aspectRatio: "1 / 1" }}
-      >
-        <video
-          ref={videoRef}
-          className="w-full h-full object-cover"
-          playsInline
-          muted
-          autoPlay
-        />
-        <canvas ref={canvasRef} className="hidden" />
-
-        {isActive && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="relative w-52 h-52">
-              <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-primary rounded-tl-md" />
-              <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-primary rounded-tr-md" />
-              <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-primary rounded-bl-md" />
-              <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-primary rounded-br-md" />
-              <div
-                className="absolute left-2 right-2 overflow-hidden"
-                style={{ top: "8px", bottom: "8px" }}
-              >
-                <div
-                  className="scanner-line absolute left-0 right-0 h-0.5 bg-primary"
-                  style={{ boxShadow: "0 0 8px oklch(0.84 0.22 132)" }}
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {!isActive && !isLoading && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-card gap-3">
-            <QrCode className="w-12 h-12 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">
-              Camera preview will appear here
-            </p>
-          </div>
-        )}
-
-        {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-background/80">
-            <Loader2 className="w-8 h-8 text-primary animate-spin" />
-          </div>
-        )}
+    <div className="flex flex-col items-center gap-6 py-4">
+      <div className="w-24 h-24 rounded-full bg-[#25D366]/10 border-2 border-[#25D366]/40 flex items-center justify-center">
+        <MessageCircle className="w-12 h-12 text-[#25D366]" />
       </div>
-
-      {error && (
-        <div className="flex items-center gap-2 text-destructive text-sm">
-          <AlertCircle className="w-4 h-4" />
-          <span>{error.message}</span>
-        </div>
-      )}
-
-      {isSupported === false && (
-        <p className="text-destructive text-sm">
-          Camera not supported on this device.
+      <div className="text-center space-y-1">
+        <h2 className="font-display font-bold text-xl">
+          Check In via WhatsApp
+        </h2>
+        <p className="text-muted-foreground text-sm">
+          Tap the button below to open WhatsApp and send your check-in message.
         </p>
-      )}
-
-      <div className="flex gap-2">
-        {!isActive ? (
-          <Button
-            onClick={startScanning}
-            disabled={!canStartScanning || isLoading}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
-          >
-            {isLoading ? (
-              <Loader2 className="w-4 h-4 animate-spin mr-2" />
-            ) : (
-              <Camera className="w-4 h-4 mr-2" />
-            )}
-            Start Scanner
-          </Button>
-        ) : (
-          <Button
-            variant="outline"
-            onClick={() => {
-              stopScanning();
-              clearResults();
-              processedRef.current = null;
-            }}
-          >
-            Stop Scanner
-          </Button>
-        )}
-        {isActive && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && (
-          <Button variant="outline" size="icon" onClick={switchCamera}>
-            <RotateCcw className="w-4 h-4" />
-          </Button>
-        )}
       </div>
-
-      {isScanning && (
-        <p className="text-sm text-muted-foreground animate-pulse">
-          Scanning for QR code…
+      <Button
+        data-ocid="checkin.whatsapp.primary_button"
+        onClick={handleOpen}
+        className="w-full h-12 font-bold text-base bg-[#25D366] hover:bg-[#1ebe5d] text-white"
+      >
+        <MessageCircle className="w-5 h-5 mr-2" />
+        Open WhatsApp
+      </Button>
+      {!whatsappNumber && (
+        <p className="text-xs text-muted-foreground text-center">
+          Admin must configure the WhatsApp number in settings.
         </p>
       )}
     </div>
@@ -473,7 +327,7 @@ function FaceTab({
 
 export default function CheckInPage({ onNavigateAdmin }: Props) {
   const [state, setState] = useState<CheckInState>({ kind: "idle" });
-  const [activeTab, setActiveTab] = useState("qr");
+  const [activeTab, setActiveTab] = useState("whatsapp");
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
@@ -597,12 +451,12 @@ export default function CheckInPage({ onNavigateAdmin }: Props) {
               <Tabs value={activeTab} onValueChange={handleTabChange}>
                 <TabsList className="w-full bg-card border border-border mb-6">
                   <TabsTrigger
-                    value="qr"
-                    data-ocid="checkin.qr_tab"
-                    className="flex-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                    value="whatsapp"
+                    data-ocid="checkin.whatsapp_tab"
+                    className="flex-1 data-[state=active]:bg-[#25D366] data-[state=active]:text-white"
                   >
-                    <QrCode className="w-4 h-4 mr-2" />
-                    QR Code
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    WhatsApp
                   </TabsTrigger>
                   <TabsTrigger
                     value="face"
@@ -614,8 +468,8 @@ export default function CheckInPage({ onNavigateAdmin }: Props) {
                   </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="qr">
-                  <QRTab onResult={setState} />
+                <TabsContent value="whatsapp">
+                  <WhatsAppTab />
                 </TabsContent>
                 <TabsContent value="face">
                   <FaceTab onResult={setState} />
