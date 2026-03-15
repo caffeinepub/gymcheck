@@ -1,0 +1,137 @@
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&display=swap");
+
+@font-face {
+  font-family: "Satoshi";
+  src: url("/assets/fonts/Satoshi-Variable.woff2") format("woff2");
+  font-weight: 300 700;
+  font-display: swap;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Dark athletic theme — electric lime on deep dark */
+    --background: 0.09 0.008 265;
+    --foreground: 0.96 0.008 80;
+
+    --card: 0.12 0.01 265;
+    --card-foreground: 0.96 0.008 80;
+
+    --popover: 0.11 0.01 265;
+    --popover-foreground: 0.96 0.008 80;
+
+    /* Electric lime */
+    --primary: 0.84 0.22 132;
+    --primary-foreground: 0.1 0.02 132;
+
+    --secondary: 0.18 0.01 265;
+    --secondary-foreground: 0.85 0.008 80;
+
+    --muted: 0.16 0.01 265;
+    --muted-foreground: 0.55 0.01 265;
+
+    --accent: 0.84 0.22 132;
+    --accent-foreground: 0.1 0.02 132;
+
+    --destructive: 0.63 0.21 25;
+    --destructive-foreground: 0.98 0.005 0;
+
+    --border: 0.22 0.012 265;
+    --input: 0.22 0.012 265;
+    --ring: 0.84 0.22 132;
+
+    --radius: 0.75rem;
+
+    --chart-1: 0.84 0.22 132;
+    --chart-2: 0.65 0.18 200;
+    --chart-3: 0.72 0.16 55;
+    --chart-4: 0.6 0.19 310;
+    --chart-5: 0.55 0.2 25;
+
+    --sidebar: 0.1 0.01 265;
+    --sidebar-foreground: 0.96 0.008 80;
+    --sidebar-primary: 0.84 0.22 132;
+    --sidebar-primary-foreground: 0.1 0.02 132;
+    --sidebar-accent: 0.16 0.01 265;
+    --sidebar-accent-foreground: 0.85 0.008 80;
+    --sidebar-border: 0.22 0.012 265;
+    --sidebar-ring: 0.84 0.22 132;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    color-scheme: dark;
+  }
+  body {
+    @apply bg-background text-foreground font-body;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* Scan ring animation */
+@keyframes scan-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.05);
+  }
+}
+@keyframes scan-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes scan-dash {
+  0% {
+    stroke-dashoffset: 283;
+  }
+  50% {
+    stroke-dashoffset: 70;
+  }
+  100% {
+    stroke-dashoffset: 283;
+  }
+}
+@keyframes glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 20px oklch(0.84 0.22 132 / 0.4), 0 0 40px
+      oklch(0.84 0.22 132 / 0.2);
+  }
+  50% {
+    box-shadow: 0 0 30px oklch(0.84 0.22 132 / 0.7), 0 0 60px
+      oklch(0.84 0.22 132 / 0.4);
+  }
+}
+@keyframes shimmer-scan {
+  0% {
+    top: 0;
+  }
+  100% {
+    top: 100%;
+  }
+}
+
+.scan-ring {
+  animation: scan-dash 2s ease-in-out infinite;
+}
+.scan-glow {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+.scanner-line {
+  animation: shimmer-scan 2s linear infinite;
+}
