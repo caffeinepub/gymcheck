@@ -28,6 +28,7 @@ import {
   Loader2,
   LogOut,
   Plus,
+  Printer,
   QrCode,
   ShieldCheck,
   Users,
@@ -439,7 +440,9 @@ export default function AdminPage({ onNavigateBack }: Props) {
                             </TableCell>
                             <TableCell>
                               <code className="text-xs text-primary bg-primary/10 px-1.5 py-0.5 rounded font-mono">
-                                {member.qrToken.slice(0, 12)}…
+                                {member.qrToken.length > 12
+                                  ? `${member.qrToken.slice(0, 12)}…`
+                                  : member.qrToken}
                               </code>
                             </TableCell>
                             <TableCell>
@@ -455,24 +458,40 @@ export default function AdminPage({ onNavigateBack }: Props) {
                                     View QR
                                   </Button>
                                 </DialogTrigger>
-                                <DialogContent className="bg-card border-border max-w-sm">
+                                <DialogContent
+                                  data-ocid="admin.view_qr.dialog"
+                                  className="bg-card border-border max-w-sm"
+                                >
                                   <DialogHeader>
                                     <DialogTitle className="font-display">
-                                      {member.name}'s QR Token
+                                      {member.name}
                                     </DialogTitle>
                                   </DialogHeader>
-                                  <div className="flex flex-col items-center gap-4 py-4">
-                                    <div className="w-full p-4 rounded-xl bg-background border border-border">
-                                      <p className="text-xs text-muted-foreground mb-2">
-                                        QR Token:
+                                  <div className="flex flex-col items-center gap-4 py-2">
+                                    {/* QR code image with white background for clean scanning */}
+                                    <div className="rounded-xl overflow-hidden border border-border bg-white p-3 shadow-sm">
+                                      <img
+                                        src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(member.qrToken)}`}
+                                        alt={`QR code for ${member.name}`}
+                                        width={220}
+                                        height={220}
+                                        className="block"
+                                      />
+                                    </div>
+                                    {/* Full token in monospace, no truncation */}
+                                    <div className="w-full rounded-lg bg-background border border-border px-3 py-2">
+                                      <p className="text-[10px] text-muted-foreground mb-1 uppercase tracking-wide">
+                                        Token
                                       </p>
-                                      <code className="text-sm text-primary font-mono break-all leading-relaxed">
+                                      <code className="text-xs text-primary font-mono break-all leading-relaxed">
                                         {member.qrToken}
                                       </code>
                                     </div>
-                                    <p className="text-xs text-muted-foreground text-center">
-                                      Share this token with the member to
-                                      generate their QR code
+                                    {/* Print / Save hint */}
+                                    <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                                      <Printer className="w-3 h-3" />
+                                      Right-click the image to save, or use
+                                      browser print
                                     </p>
                                   </div>
                                 </DialogContent>

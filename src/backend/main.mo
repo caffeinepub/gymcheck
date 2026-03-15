@@ -7,7 +7,6 @@ import Time "mo:core/Time";
 import Nat "mo:core/Nat";
 import Int "mo:core/Int";
 import Runtime "mo:core/Runtime";
-import Principal "mo:core/Principal";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 
@@ -67,9 +66,9 @@ actor {
     dayMillis * 1_000_000;
   };
 
-  func generateQRToken() : Text {
-    memberIdCounter += 1;
-    "token-" # memberIdCounter.toText() # "-" # Time.now().toText();
+  func generateQRToken(id : Nat) : Text {
+    let now = Time.now();
+    "token-" # id.toText() # "-" # now.toText();
   };
 
   public shared ({ caller }) func createMember(name : Text, email : Text) : async Member {
@@ -78,7 +77,7 @@ actor {
     };
 
     memberIdCounter += 1;
-    let qrToken = generateQRToken();
+    let qrToken = generateQRToken(memberIdCounter);
     let member : Member = {
       id = memberIdCounter;
       name;
